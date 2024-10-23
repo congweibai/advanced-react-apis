@@ -7,18 +7,37 @@ import * as ReactDOM from 'react-dom/client'
 // "action" (type "Action")
 // 🐨 the function should merge properties from the state and the action and
 // return that new object
-const countReducer = (count: number, change: number) => count + change
+
+type State = {
+	count: number
+}
+
+type Action = State
+
+const countReducer = (state: State, action: Action) => ({
+	...state,
+	...action,
+})
 
 function Counter({ initialCount = 0, step = 1 }) {
 	// 🐨 change this to "state" and "setState" and update the second argument
 	// to be an object with a count property.
-	const [count, changeCount] = useReducer(countReducer, initialCount)
+	const [state, setState] = useReducer(countReducer, {
+		count: initialCount,
+	})
 	// 🐨 update these calls to call setState with an object and a count property
-	const increment = () => changeCount(step)
-	const decrement = () => changeCount(-step)
+	const { count } = state
+	const increment = () =>
+		setState({
+			count: count + step,
+		})
+	const decrement = () =>
+		setState({
+			count: count - step,
+		})
 	return (
 		<div className="counter">
-			<output>{count}</output>
+			<output>{state.count}</output>
 			<div>
 				<button onClick={decrement}>⬅️</button>
 				<button onClick={increment}>➡️</button>
