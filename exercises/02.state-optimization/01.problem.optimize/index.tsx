@@ -20,23 +20,32 @@ function App() {
 			// 1. accept the prevParams
 			// 2. create newParams from window.location.search
 			// 3. compare the prevParams.toString() to newParams.toString()
+			setSearchParamsState((prevParams) => {
+				const newParams = new URLSearchParams(window.location.search)
+				return prevParams.toString() === newParams.toString()
+					? prevParams
+					: newParams
+			})
 			// 4. if they're the same, return prevParams
 			// 5. if they're different, return newParams
-			setSearchParamsState(new URLSearchParams(window.location.search))
 		}
-		window.addEventListener('popstate', updateSearchParams)
+		window.addEventListener('popstate', () => updateSearchParams)
 		return () => window.removeEventListener('popstate', updateSearchParams)
 	}, [])
 
 	function setSearchParams(...args: Parameters<typeof setGlobalSearchParams>) {
 		console.log('setting search params')
-		const searchParams = setGlobalSearchParams(...args)
 		// 🐨 switch this to use the callback form and in the callback:
 		// 1. accept the prevParams
 		// 2. compare the prevParams.toString() to searchParams.toString()
 		// 3. if they're the same, return prevParams
 		// 4. if they're different, return searchParams
-		setSearchParamsState(searchParams)
+		const searchParams = setGlobalSearchParams(...args)
+		setSearchParamsState((prevParams) => {
+			return prevParams.toString() === searchParams.toString()
+				? prevParams
+				: searchParams
+		})
 		return searchParams
 	}
 
