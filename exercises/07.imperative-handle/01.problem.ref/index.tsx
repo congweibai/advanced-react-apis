@@ -1,16 +1,22 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
 import * as ReactDOM from 'react-dom/client'
 import { allMessages } from './messages'
 
 // 💰 this'll be handy
-// type ScrollableImperativeAPI = {
-// 	scrollToTop: () => void
-// 	scrollToBottom: () => void
-// }
+type ScrollableImperativeAPI = {
+	scrollToTop: () => void
+	scrollToBottom: () => void
+}
 
 // 🐨 Accept `scrollableRef` as a prop here
 // 🦺 it's type should be React.RefObject<ScrollableImperativeAPI | null>
-function Scrollable({ children }: { children: React.ReactNode }) {
+function Scrollable({
+	children,
+	scrollableRef,
+}: {
+	children: React.ReactNode
+	scrollableRef: React.RefObject<ScrollableImperativeAPI | null>
+}) {
 	const containerRef = useRef<HTMLDivElement>(null)
 
 	useLayoutEffect(() => {
@@ -35,6 +41,12 @@ function Scrollable({ children }: { children: React.ReactNode }) {
 	// that spiders out into having to add useCallback around the functions. So
 	// annoying! Maybe you can think of another way we can have the dependency
 	// array without having to use useCallback. 🤔
+	useImperativeHandle(scrollableRef, () => {
+		return {
+			scrollToTop,
+			scrollToBottom,
+		}
+	}, [])
 
 	return (
 		<div ref={containerRef} role="log">
@@ -46,6 +58,7 @@ function Scrollable({ children }: { children: React.ReactNode }) {
 function App() {
 	// 🐨 create a scrollableRef with useRef that is a ScrollableImperativeAPI type (initialize it to null)
 	const [messages, setMessages] = useState(allMessages.slice(0, 8))
+	const scrollableRef = useRef<ScrollableImperativeAPI>(null)
 	function addMessage() {
 		if (messages.length < allMessages.length) {
 			setMessages(allMessages.slice(0, messages.length + 1))
@@ -58,10 +71,14 @@ function App() {
 	}
 
 	// 🐨 make this function call the scrollToTop function on the ref
-	const scrollToTop = () => {}
+	const scrollToTop = () => {
+		if (scrollableRef.current) scrollableRef.current.scrollToTop()
+	}
 
 	// 🐨 make this function call the scrollToBottom function on the ref
-	const scrollToBottom = () => {}
+	const scrollToBottom = () => {
+		if (scrollableRef.current) scrollableRef.current.scrollToBottom()
+	}
 
 	return (
 		<div className="messaging-app">
@@ -74,7 +91,7 @@ function App() {
 				<button onClick={scrollToTop}>scroll to top</button>
 			</div>
 			{/* 🐨 add scrollableRef prop here */}
-			<Scrollable>
+			<Scrollable scrollableRef={scrollableRef}>
 				{messages.map((message, index, array) => (
 					<div key={message.id}>
 						<strong>{message.author}</strong>: <span>{message.content}</span>
